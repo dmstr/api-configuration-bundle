@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://za7.hrzg.de/schemas/api-configuration-health.json",
+  "title": "API Configuration Health Check Response",
+  "description": "Unified health check response structure for all API types",
+  "type": "object",
+  "required": ["status", "authenticated", "endpoint", "responseTime"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["ok", "error"],
+      "description": "Overall health status of the API connection"
+    },
+    "authenticated": {
+      "type": "boolean",
+      "description": "Whether authentication with the API was successful"
+    },
+    "endpoint": {
+      "type": "string",
+      "format": "uri",
+      "description": "The base URL or endpoint being tested"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "API-specific metadata like version, rate limits, etc.",
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "API version if available"
+        },
+        "apiName": {
+          "type": "string",
+          "description": "Name of the API service (basecamp2, github, gitlab, etc.)"
+        },
+        "rateLimit": {
+          "type": "object",
+          "description": "Rate limit information if available",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "description": "Maximum requests allowed"
+            },
+            "remaining": {
+              "type": "integer",
+              "description": "Remaining requests"
+            },
+            "reset": {
+              "type": "string",
+              "format": "date-time",
+              "description": "When the rate limit resets"
+            }
+          }
+        },
+        "custom": {
+          "type": "object",
+          "description": "Any additional API-specific metadata",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "responseTime": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Response time in milliseconds"
+    },
+    "message": {
+      "type": "string",
+      "description": "Human-readable status message or error description"
+    },
+    "error": {
+      "type": "object",
+      "description": "Error details if status is 'error'",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "Error code or type"
+        },
+        "message": {
+          "type": "string",
+          "description": "Error message"
+        },
+        "details": {
+          "type": "object",
+          "description": "Additional error details",
+          "additionalProperties": true
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,31 @@
+{
+    "name": "dmstr/api-configuration-bundle",
+    "description": "Configurable external API connections: ApiConfiguration entity with type+credentials, health-check + OAuth-authorize flow, ApiExtensionRegistry adapter pattern.",
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "diemeisterei GmbH",
+            "homepage": "https://diemeisterei.de"
+        }
+    ],
+    "require": {
+        "php": ">=8.2",
+        "symfony/framework-bundle": "^7.0",
+        "api-platform/symfony": "^4.0",
+        "doctrine/orm": "^3.0",
+        "doctrine/doctrine-bundle": "^2.0",
+        "dmstr/api-platform-utils-bundle": "*",
+        "dmstr/openapi-json-schema-bundle": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Dmstr\\ApiConfiguration\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Dmstr\\ApiConfiguration\\Tests\\": "tests/"
+        }
+    }
+}

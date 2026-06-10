@@ -1,0 +1,22 @@
+# file generated with AI assistance: Claude Code - 2026-06-10 12:00:00 UTC
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    # Auto-discover bundle services (commands, state providers,
+    # validators, normalizers, controllers, listeners). Entities and
+    # plain interfaces are excluded.
+    Dmstr\ApiConfiguration\:
+        resource: '../src/'
+        exclude:
+            - '../src/ApiConfigurationBundle.php'
+            - '../src/Entity/'
+            - '../src/Extension/'
+
+    # Explicit health-check state provider tag for API Platform
+    Dmstr\ApiConfiguration\State\ApiConfigurationHealthProvider:
+        tags:
+            - { name: 'api_platform.state_provider' }
