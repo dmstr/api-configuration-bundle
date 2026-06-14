@@ -18,6 +18,9 @@
         "dmstr/api-platform-utils-bundle": "*",
         "dmstr/openapi-json-schema-bundle": "*"
     },
+    "require-dev": {
+        "phpunit/phpunit": "^12.0"
+    },
     "autoload": {
         "psr-4": {
             "Dmstr\\ApiConfiguration\\": "src/"
