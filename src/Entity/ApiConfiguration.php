@@ -58,7 +58,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     security: "is_granted('ROLE_USER')",
     paginationEnabled: true,
     paginationItemsPerPage: 30,
-    openapi: new Operation(tags: ['ZA7 Core'])
+    openapi: new Operation(tags: ['System'])
 )]
 #[ApiFilter(SearchFilter::class, properties: [
     'name' => 'partial',
