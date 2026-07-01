@@ -1,5 +1,5 @@
 <?php
-// file generated with AI assistance: Claude Code - 2026-06-10 13:00:00 UTC
+// file generated with AI assistance: Claude Code - 2026-07-01 14:15:00 UTC
 
 declare(strict_types=1);
 
@@ -8,6 +8,13 @@ namespace Dmstr\ApiConfiguration\Migrations;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
+/**
+ * Create the api_configuration table.
+ *
+ * Written against the DBAL Schema API (not raw platform SQL) so Doctrine emits
+ * the correct DDL for whatever platform the consuming app runs on — MySQL,
+ * PostgreSQL or SQLite. See MigrationsPortabilityTest.
+ */
 final class Version20260516000001 extends AbstractMigration
 {
     public function getDescription(): string
@@ -17,23 +24,20 @@ final class Version20260516000001 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql(<<<'SQL'
-            CREATE TABLE api_configuration (
-                id BINARY(16) NOT NULL COMMENT '(DC2Type:uuid)',
-                name VARCHAR(255) NOT NULL,
-                type VARCHAR(50) NOT NULL,
-                endpoint_type VARCHAR(10) NOT NULL,
-                config_json JSON NOT NULL,
-                active TINYINT(1) NOT NULL,
-                created_at DATETIME NOT NULL COMMENT '(DC2Type:datetime_immutable)',
-                updated_at DATETIME NOT NULL COMMENT '(DC2Type:datetime_immutable)',
-                PRIMARY KEY(id)
-            ) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB
-        SQL);
+        $table = $schema->createTable('api_configuration');
+        $table->addColumn('id', 'uuid');
+        $table->addColumn('name', 'string', ['length' => 255]);
+        $table->addColumn('type', 'string', ['length' => 50]);
+        $table->addColumn('endpoint_type', 'string', ['length' => 10]);
+        $table->addColumn('config_json', 'json');
+        $table->addColumn('active', 'boolean');
+        $table->addColumn('created_at', 'datetime_immutable');
+        $table->addColumn('updated_at', 'datetime_immutable');
+        $table->setPrimaryKey(['id']);
     }
 
     public function down(Schema $schema): void
     {
-        $this->addSql('DROP TABLE api_configuration');
+        $schema->dropTable('api_configuration');
     }
 }

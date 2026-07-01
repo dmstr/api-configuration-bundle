@@ -1,5 +1,5 @@
 <?php
-// file generated with AI assistance: Claude Code - 2026-06-10 13:00:00 UTC
+// file generated with AI assistance: Claude Code - 2026-07-01 14:15:00 UTC
 
 declare(strict_types=1);
 
@@ -17,11 +17,13 @@ final class Version20260608210000 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql('RENAME TABLE api_configuration TO za7_api_configuration');
+        // Portable across MySQL 8+, PostgreSQL and SQLite (unlike the MySQL-only
+        // `RENAME TABLE`, which PostgreSQL does not understand).
+        $this->addSql('ALTER TABLE api_configuration RENAME TO za7_api_configuration');
     }
 
     public function down(Schema $schema): void
     {
-        $this->addSql('RENAME TABLE za7_api_configuration TO api_configuration');
+        $this->addSql('ALTER TABLE za7_api_configuration RENAME TO api_configuration');
     }
 }
