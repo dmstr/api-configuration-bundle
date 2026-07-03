@@ -7,7 +7,6 @@ namespace Dmstr\ApiConfiguration\Normalizer;
 
 use Opis\JsonSchema\Validator;
 use Opis\JsonSchema\Errors\ErrorFormatter;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
  * Normalizes health check responses from different API types into a unified format
@@ -18,11 +17,14 @@ class HealthNormalizer
     private string $schemaPath;
 
     public function __construct(
-        #[Autowire('%kernel.project_dir%')]
-        string $projectDir
+        ?string $schemaPath = null
     ) {
         $this->validator = new Validator();
-        $this->schemaPath = $projectDir . '/src/Entity/ApiConfiguration/health.json';
+        // The health schema ships with the bundle, entity-local next to the
+        // ApiConfiguration entity — resolve it relative to this file instead
+        // of assuming an application path (the entity no longer lives in the
+        // consuming app since the bundle extraction).
+        $this->schemaPath = $schemaPath ?? \dirname(__DIR__) . '/Entity/ApiConfiguration/health.json';
     }
 
     /**

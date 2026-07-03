@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Dmstr\ApiConfiguration;
 
+use Dmstr\ApiConfiguration\Extension\ApiExtensionInterface;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -12,7 +13,20 @@ use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 
 final class ApiConfigurationBundle extends AbstractBundle
 {
+    public const string EXTENSION_TAG = 'dmstr_api_configuration.extension';
+
     protected string $extensionAlias = 'dmstr_api_configuration';
+
+    public function build(ContainerBuilder $container): void
+    {
+        parent::build($container);
+
+        // Every service implementing ApiExtensionInterface (app adapters,
+        // other bundles) is tagged automatically and collected by the
+        // ApiExtensionRegistry via tagged_iterator — no manual registration.
+        $container->registerForAutoconfiguration(ApiExtensionInterface::class)
+            ->addTag(self::EXTENSION_TAG);
+    }
 
     public function loadExtension(
         array $config,

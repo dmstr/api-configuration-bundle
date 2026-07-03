@@ -20,3 +20,9 @@ services:
     Dmstr\ApiConfiguration\State\ApiConfigurationHealthProvider:
         tags:
             - { name: 'api_platform.state_provider' }
+
+    # Collects every ApiExtensionInterface implementation — the bundle's
+    # build() autoconfigures the tag for all implementations.
+    Dmstr\ApiConfiguration\Service\ApiExtensionRegistry:
+        arguments:
+            $extensions: !tagged_iterator dmstr_api_configuration.extension
