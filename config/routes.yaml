@@ -1,0 +1,11 @@
+# file generated with AI assistance: Claude Code - 2026-07-03 12:00:00 UTC
+#
+# Bundle routes (attribute-routed controllers, e.g. the OAuth authorize
+# callback at /api/oauth/callback). Import from the application:
+#
+#     # config/routes.yaml
+#     dmstr_api_configuration:
+#         resource: '@ApiConfigurationBundle/config/routes.yaml'
+dmstr_api_configuration.controllers:
+    resource: '../src/Controller/'
+    type: attribute
