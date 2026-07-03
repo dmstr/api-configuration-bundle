@@ -18,6 +18,18 @@ class ApiExtensionRegistry
     private array $extensions = [];
 
     /**
+     * @param iterable<ApiExtensionInterface> $extensions Usually the services
+     *        tagged with ApiConfigurationBundle::EXTENSION_TAG (autoconfigured
+     *        for every ApiExtensionInterface implementation).
+     */
+    public function __construct(iterable $extensions = [])
+    {
+        foreach ($extensions as $extension) {
+            $this->register($extension);
+        }
+    }
+
+    /**
      * Register an API extension
      *
      * @param ApiExtensionInterface $extension

@@ -15,6 +15,19 @@ use PHPUnit\Framework\TestCase;
  */
 final class ApiExtensionRegistryTest extends TestCase
 {
+    public function testConstructorRegistersIterableExtensions(): void
+    {
+        // Mirrors the tagged_iterator wiring: all ApiExtensionInterface
+        // implementations are collected at construction time.
+        $registry = new ApiExtensionRegistry([
+            $this->extension('gitlab'),
+            $this->extension('basecamp2'),
+        ]);
+
+        self::assertSame(['gitlab', 'basecamp2'], $registry->getNames());
+        self::assertSame('basecamp2', $registry->get('basecamp2')?->getName());
+    }
+
     public function testRegisterAndGet(): void
     {
         $registry = new ApiExtensionRegistry();
