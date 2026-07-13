@@ -32,7 +32,7 @@ use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
-#[ORM\Table(name: 'za7_api_configuration')]
+#[ORM\Table(name: 'dmstr_api_configuration')]
 #[ORM\HasLifecycleCallbacks]
 #[ApiResource(
     operations: [
