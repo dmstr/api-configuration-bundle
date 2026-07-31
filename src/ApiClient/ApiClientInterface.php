@@ -97,8 +97,17 @@ interface ApiClientInterface
      * Check if the source has been modified since a given timestamp.
      * Used for intelligent sync scheduling (skip when nothing changed).
      *
+     * Contract:
+     *  - Must be *cheap*: one request at most. It is called to avoid a more
+     *    expensive call, so it must not page or fan out.
+     *  - Must **fail open**: on any error, or whenever the implementation cannot
+     *    tell, return `true`. A `false` suppresses the scan entirely, so a broken
+     *    or incomplete probe would silently stop data from being refreshed.
+     *  - Returning a constant `true` is a valid implementation for sources
+     *    without a reliable account-wide change feed.
+     *
      * @param \DateTimeInterface $since Timestamp to check against
-     * @return bool True if source has changes since the timestamp
+     * @return bool True if source has (or may have) changes since the timestamp
      */
     public function hasChanges(\DateTimeInterface $since): bool;
 }
