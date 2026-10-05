@@ -1,4 +1,5 @@
 <?php
+// file generated with AI assistance: Claude Code - 2026-10-05 10:25:39 UTC
 
 declare(strict_types=1);
 
@@ -55,7 +56,8 @@ use Symfony\Component\Validator\Constraints as Assert;
         ),
     ],
     routePrefix: '/admin',
-    security: "is_granted('ROLE_USER')",
+    // Reads included: configJson holds upstream credentials (Issue #8)
+    security: "is_granted('ROLE_ADMIN')",
     paginationEnabled: true,
     paginationItemsPerPage: 30,
     openapi: new Operation(tags: ['System'])
@@ -97,7 +99,7 @@ class ApiConfiguration implements JsonSchemaProviderInterface
     #[JsonSchema]
     #[Assert\NotBlank]
     #[ApiConfigurationConstraint]
-    #[ApiProperty(description: 'API configuration object. Must match one of the supported API types.')]
+    #[ApiProperty(description: 'API configuration object. Must match one of the supported API types. Secret keys (marked "writeOnly" in the type schema) are stored encrypted and returned masked as "********"; send the mask or omit the key to keep the stored value, null to remove it.')]
     private array $configJson = [];
 
     #[ORM\Column(type: Types::BOOLEAN)]

@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Dmstr\ApiConfiguration\Validator;
 
+use Dmstr\ApiConfiguration\Security\ConfigSecrets;
 use Dmstr\OpenApiJsonSchema\Service\SchemaRegistry;
 use Opis\JsonSchema\Validator;
 use Psr\Log\LoggerInterface;
@@ -21,7 +22,8 @@ class ApiConfigurationValidator extends ConstraintValidator
 {
     public function __construct(
         private readonly SchemaRegistry $schemaRegistry,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
+        private readonly ConfigSecrets $secrets,
     ) {
     }
 
@@ -41,13 +43,17 @@ class ApiConfigurationValidator extends ConstraintValidator
         // Get unified schema from SchemaRegistry
         $unifiedSchema = $this->schemaRegistry->getUnifiedSchema();
 
+        // Secrets kept from the stored configuration are encrypted; validate
+        // their clear values. Logs only ever see the masked configuration.
+        $loggable = $this->secrets->mask($value);
+
         // Convert to stdClass for validation
-        $data = json_decode(json_encode($value));
+        $data = json_decode(json_encode($this->secrets->decrypt($value)));
         $schema = json_decode(json_encode($unifiedSchema));
 
         // Log what we're validating
         $this->logger->debug('Validating API configuration', [
-            'data' => $value,
+            'data' => $loggable,
             'has_anyOf' => isset($unifiedSchema['anyOf']),
             'anyOf_count' => isset($unifiedSchema['anyOf']) ? count($unifiedSchema['anyOf']) : 0,
             'data_keys' => array_keys($value)
@@ -88,7 +94,7 @@ class ApiConfigurationValidator extends ConstraintValidator
                 'error_keyword' => $error->keyword(),
                 'error_args' => $error->args(),
                 'sub_errors' => $subErrors,
-                'data' => $value
+                'data' => $loggable
             ]);
 
             $errorMessage = $this->formatError($error);

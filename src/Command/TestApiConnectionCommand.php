@@ -1,4 +1,5 @@
 <?php
+// file generated with AI assistance: Claude Code - 2026-10-05 10:25:39 UTC
 
 declare(strict_types=1);
 
@@ -72,16 +73,10 @@ class TestApiConnectionCommand extends Command
             $io->warning('This configuration is disabled.');
         }
 
-        $credentials = $config->getCredentials();
-        if ($credentials === null || $credentials === []) {
-            $io->error('No credentials configured for this API.');
-            return Command::FAILURE;
-        }
-
         $io->section('Authenticating...');
 
         try {
-            $client = $this->clientFactory->create($config->getType(), $credentials);
+            $client = $this->clientFactory->createFromEntity($config);
 
             if ($client->authenticate()) {
                 $io->success('Authentication successful!');

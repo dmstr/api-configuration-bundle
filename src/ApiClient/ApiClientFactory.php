@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Dmstr\ApiConfiguration\ApiClient;
 
+use Dmstr\ApiConfiguration\Security\ConfigSecrets;
 use Dmstr\ApiConfiguration\Service\ApiExtensionRegistry;
 
 /**
@@ -13,7 +14,8 @@ use Dmstr\ApiConfiguration\Service\ApiExtensionRegistry;
 class ApiClientFactory
 {
     public function __construct(
-        private readonly ApiExtensionRegistry $registry
+        private readonly ApiExtensionRegistry $registry,
+        private readonly ConfigSecrets $secrets,
     ) {
     }
 
@@ -21,9 +23,10 @@ class ApiClientFactory
      * Create an API client based on configuration
      *
      * @param string $apiName API name (basecamp2, github, gitlab, jira)
-     * @param array $config Configuration array
+     * @param array $config Configuration array; encrypted secrets are decrypted here
      * @return ApiClientInterface
      * @throws \InvalidArgumentException If API name is not supported or config is invalid
+     * @throws \Dmstr\ApiConfiguration\Security\SecretEncryptionException If a secret cannot be decrypted
      */
     public function create(string $apiName, array $config): ApiClientInterface
     {
@@ -39,7 +42,7 @@ class ApiClientFactory
             );
         }
 
-        return $extension->createClient($config);
+        return $extension->createClient($this->secrets->decrypt($config));
     }
 
     /**

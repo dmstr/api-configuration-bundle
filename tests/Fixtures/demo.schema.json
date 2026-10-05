@@ -1,0 +1,34 @@
+{
+    "$comment": "file generated with AI assistance: Claude Code - 2026-10-05 10:25:39 UTC",
+    "type": "object",
+    "required": ["type", "endpoint_type", "base_url", "auth_type"],
+    "properties": {
+        "type": { "const": "demo" },
+        "endpoint_type": { "const": "rest" },
+        "base_url": { "type": "string", "format": "uri" },
+        "auth_type": { "enum": ["basic", "bearer"] },
+        "username": { "type": "string" },
+        "password": { "type": "string", "writeOnly": true },
+        "token": { "type": "string", "writeOnly": true },
+        "oauth": { "$ref": "#/definitions/oauth" },
+        "headers": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": { "type": "string" },
+                    "value": { "type": "string", "writeOnly": true }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "oauth": {
+            "type": "object",
+            "properties": {
+                "client_id": { "type": "string" },
+                "client_secret": { "type": "string", "minLength": 4, "writeOnly": true }
+            }
+        }
+    }
+}
