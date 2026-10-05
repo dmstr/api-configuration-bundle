@@ -9,7 +9,7 @@
         "auth_type": { "enum": ["basic", "bearer"] },
         "username": { "type": "string" },
         "password": { "type": "string", "writeOnly": true },
-        "token": { "type": "string", "writeOnly": true },
+        "token": { "type": "string", "minLength": 4, "writeOnly": true },
         "oauth": { "$ref": "#/definitions/oauth" },
         "headers": {
             "type": "array",

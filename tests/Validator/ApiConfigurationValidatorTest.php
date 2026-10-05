@@ -52,9 +52,11 @@ final class ApiConfigurationValidatorTest extends ConstraintValidatorTestCase
 
     public function testKeptEncryptedSecretIsValidatedInClear(): void
     {
-        // client_secret has minLength 4; the ciphertext alone would pass
+        // token has minLength 4; the ciphertext alone would pass. Not via the
+        // $ref'd oauth.client_secret: the unified anyOf schema cannot resolve a
+        // type schema's local `#/definitions/...` (SchemaRegistry limitation)
         $config = SecretsFixture::configSecrets()->encrypt(
-            SecretsFixture::config(['oauth' => ['client_secret' => 'abc']]),
+            SecretsFixture::config(['auth_type' => 'bearer', 'token' => 'abc']),
         );
 
         $this->validator->validate($config, new ApiConfigurationConstraint());
