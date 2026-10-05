@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Dmstr\ApiConfiguration\Security;
 
+use Dmstr\ApiConfiguration\Schema\JsonSchemaFile;
 use Dmstr\ApiConfiguration\Service\ApiExtensionRegistry;
 use Dmstr\OpenApiJsonSchema\Service\SchemaRegistry;
 
@@ -70,12 +71,12 @@ final class SecretSchemaResolver
         $schemas = [];
 
         if ($type !== '' && ($provider = $this->schemaRegistry->getProvider($type)) !== null) {
-            $schemas[] = $this->load($provider->getSchemaPath());
+            $schemas[] = JsonSchemaFile::load($provider->getSchemaPath());
         } elseif ($type !== '' && ($extension = $this->extensionRegistry->get($type)) !== null) {
-            $schemas[] = $this->load($extension->getSchemaPath());
+            $schemas[] = JsonSchemaFile::load($extension->getSchemaPath());
         } else {
             $all = array_map(
-                fn ($provider): array => $this->load($provider->getSchemaPath()),
+                static fn ($provider): array => JsonSchemaFile::load($provider->getSchemaPath()),
                 array_values($this->schemaRegistry->getProviders()),
             );
             $matching = array_filter($all, static fn (array $schema): bool => self::declaresType($schema, $type));
@@ -90,21 +91,6 @@ final class SecretSchemaResolver
         }
 
         return array_values($paths);
-    }
-
-    private function load(string $schemaPath): array
-    {
-        $content = is_file($schemaPath) ? file_get_contents($schemaPath) : false;
-        if ($content === false) {
-            throw new \RuntimeException(sprintf('Cannot read API configuration schema "%s"', $schemaPath));
-        }
-
-        $schema = json_decode($content, true);
-        if (!is_array($schema)) {
-            throw new \RuntimeException(sprintf('Invalid JSON in API configuration schema "%s"', $schemaPath));
-        }
-
-        return $schema;
     }
 
     private static function declaresType(array $schema, string $type): bool

@@ -46,7 +46,10 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Get(
             uriTemplate: '/api_configurations/{id}/health',
             name: 'api_configuration_health',
-            provider: ApiConfigurationHealthProvider::class
+            provider: ApiConfigurationHealthProvider::class,
+            // Nested arrays (metadata, error) stay plain objects in JSON-LD
+            // instead of becoming hydra:Collection (Issue #9)
+            normalizationContext: ['api_sub_level' => true],
         ),
         new Get(
             uriTemplate: '/api_configurations/{id}/authorize',

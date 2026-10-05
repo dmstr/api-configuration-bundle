@@ -14,6 +14,25 @@ Manage external API connections as Doctrine entities.
 - OAuth callback controller for `authorize` flow
 - CLI mirrors: `api-configuration:create`, `:health`, `:test-connection`
 
+## API clients
+
+An extension implements `ApiExtensionInterface` (tagged automatically) and builds a client implementing `ApiClientInterface`, which holds only what every source supports. Optional capabilities are separate interfaces; implement those the source really supports, callers check `instanceof`:
+
+| Interface | Methods |
+|---|---|
+| `CustomerAwareApiClientInterface` | `getCustomers()` |
+| `TodoListAwareApiClientInterface` | `getTodoLists()` |
+| `ChangeProbeInterface` | `hasChanges()` — cheap, fail open; without it a source counts as always changed |
+| `UserAwareApiClientInterface` | `getUsers()` |
+
+`authenticate()` returns nothing and throws `AuthenticationFailedException` with the original exception as `previous`.
+
+`ApiClientFactory::create()` validates the configuration against the extension's `schema.json` before calling `createClient()`, so extensions need no `isset()` checks of their own; an invalid configuration throws `InvalidConfigurationException` naming the field.
+
+### Health checks
+
+`ApiConfigurationHealthChecker` serves the health route, `app:api-configuration:health` and application dashboards. For a type with a `HealthProbeInterface` (tagged automatically) it calls the probe with the decrypted configuration; otherwise it builds the client and calls `getHealthInfo()`. Types without a full client, such as schema-only connection types, only need a probe.
+
 ## Security
 
 ### Access

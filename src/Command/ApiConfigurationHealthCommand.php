@@ -1,13 +1,12 @@
 <?php
-// file generated with AI assistance: Claude Code - 2025-11-10 23:58:00
+// file generated with AI assistance: Claude Code - 2026-10-05 12:10:00 UTC
 
 declare(strict_types=1);
 
 namespace Dmstr\ApiConfiguration\Command;
 
-use Dmstr\ApiConfiguration\ApiClient\ApiClientFactory;
 use Dmstr\ApiConfiguration\Entity\ApiConfiguration;
-use Dmstr\ApiConfiguration\Normalizer\HealthNormalizer;
+use Dmstr\ApiConfiguration\Health\ApiConfigurationHealthChecker;
 use Dmstr\ApiPlatformUtils\Service\UuidResolver;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -24,8 +23,7 @@ class ApiConfigurationHealthCommand extends Command
 {
     public function __construct(
         private readonly UuidResolver $uuidResolver,
-        private readonly ApiClientFactory $clientFactory,
-        private readonly HealthNormalizer $healthNormalizer
+        private readonly ApiConfigurationHealthChecker $healthChecker,
     ) {
         parent::__construct();
     }
@@ -68,62 +66,10 @@ class ApiConfigurationHealthCommand extends Command
 
         $io->section('Performing Health Check...');
 
-        // Measure response time
-        $startTime = microtime(true);
-        $client = null;
+        $normalizedHealth = $this->healthChecker->check($config);
+        $this->displayHealthResult($io, $normalizedHealth);
 
-        try {
-            // Create API client
-            $client = $this->clientFactory->createFromEntity($config);
-
-            // Get health info from client
-            $rawHealthInfo = $client->getHealthInfo();
-
-            // Calculate response time
-            $responseTime = (microtime(true) - $startTime) * 1000; // Convert to milliseconds
-
-            // Normalize health info — endpoint comes from the client itself
-            // (mirrors ApiConfigurationHealthProvider)
-            $normalizedHealth = $this->healthNormalizer->normalize(
-                $rawHealthInfo,
-                $client->getEndpoint(),
-                $responseTime
-            );
-
-            // Display results
-            $this->displayHealthResult($io, $normalizedHealth);
-
-            return $normalizedHealth['status'] === 'ok' ? Command::SUCCESS : Command::FAILURE;
-        } catch (\Exception $e) {
-            $responseTime = (microtime(true) - $startTime) * 1000;
-
-            // Fall back to a URN identifying the ApiConfiguration when the
-            // client could not be created — still a valid URI per RFC 8141.
-            $endpoint = $client?->getEndpoint()
-                ?? sprintf('urn:za7:api-configuration:%s', $config->getId());
-
-            $normalizedHealth = $this->healthNormalizer->normalize(
-                [
-                    'status' => 'error',
-                    'authenticated' => false,
-                    'message' => 'Health check failed: ' . $e->getMessage(),
-                    'error' => [
-                        'code' => 'HEALTH_CHECK_ERROR',
-                        'message' => $e->getMessage(),
-                    ],
-                ],
-                $endpoint,
-                $responseTime
-            );
-
-            $this->displayHealthResult($io, $normalizedHealth);
-
-            if ($output->isVerbose()) {
-                $io->writeln("\n" . $e->getTraceAsString());
-            }
-
-            return Command::FAILURE;
-        }
+        return $normalizedHealth['status'] === 'ok' ? Command::SUCCESS : Command::FAILURE;
     }
 
     /**

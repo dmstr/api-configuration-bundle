@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Dmstr\ApiConfiguration\Command;
 
 use Dmstr\ApiConfiguration\ApiClient\ApiClientFactory;
+use Dmstr\ApiConfiguration\ApiClient\AuthenticationFailedException;
 use Dmstr\ApiConfiguration\Entity\ApiConfiguration;
 use Dmstr\ApiPlatformUtils\Service\UuidResolver;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -77,39 +78,51 @@ class TestApiConnectionCommand extends Command
 
         try {
             $client = $this->clientFactory->createFromEntity($config);
-
-            if ($client->authenticate()) {
-                $io->success('Authentication successful!');
-
-                $io->section('Fetching projects...');
-                $projects = $client->getProjects();
-
-                $io->success(sprintf('Successfully fetched %d projects', count($projects)));
-
-                if (count($projects) > 0) {
-                    $io->writeln('First 5 projects:');
-                    $projectList = array_slice($projects, 0, 5);
-                    $rows = [];
-                    foreach ($projectList as $project) {
-                        $rows[] = [
-                            $project['id'] ?? $project['name'] ?? 'N/A',
-                            $project['name'] ?? 'N/A',
-                        ];
-                    }
-                    $io->table(['ID', 'Name'], $rows);
-                }
-
-                return Command::SUCCESS;
-            } else {
-                $io->error('Authentication failed. Please check your credentials.');
-                return Command::FAILURE;
-            }
-        } catch (\Exception $e) {
-            $io->error(sprintf('Error: %s', $e->getMessage()));
-            if ($output->isVerbose()) {
-                $io->writeln($e->getTraceAsString());
+            $client->authenticate();
+        } catch (AuthenticationFailedException $e) {
+            $io->error($e->getMessage());
+            // The cause (401, DNS, TLS, ...) is the reason to run this command
+            for ($cause = $e->getPrevious(); $cause !== null; $cause = $cause->getPrevious()) {
+                $io->writeln(sprintf(' Caused by %s: %s', $cause::class, $cause->getMessage()));
             }
             return Command::FAILURE;
+        } catch (\Exception $e) {
+            return $this->failWith($io, $output, $e);
         }
+
+        $io->success('Authentication successful!');
+
+        try {
+            $io->section('Fetching projects...');
+            $projects = $client->getProjects();
+        } catch (\Exception $e) {
+            return $this->failWith($io, $output, $e);
+        }
+
+        $io->success(sprintf('Successfully fetched %d projects', count($projects)));
+
+        if (count($projects) > 0) {
+            $io->writeln('First 5 projects:');
+            $rows = [];
+            foreach (array_slice($projects, 0, 5) as $project) {
+                $rows[] = [
+                    $project['id'] ?? $project['name'] ?? 'N/A',
+                    $project['name'] ?? 'N/A',
+                ];
+            }
+            $io->table(['ID', 'Name'], $rows);
+        }
+
+        return Command::SUCCESS;
+    }
+
+    private function failWith(SymfonyStyle $io, OutputInterface $output, \Exception $e): int
+    {
+        $io->error(sprintf('Error: %s', $e->getMessage()));
+        if ($output->isVerbose()) {
+            $io->writeln($e->getTraceAsString());
+        }
+
+        return Command::FAILURE;
     }
 }
