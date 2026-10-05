@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Dmstr\ApiConfiguration;
 
 use Dmstr\ApiConfiguration\Extension\ApiExtensionInterface;
+use Dmstr\ApiConfiguration\Health\HealthProbeInterface;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -14,6 +15,7 @@ use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 final class ApiConfigurationBundle extends AbstractBundle
 {
     public const string EXTENSION_TAG = 'dmstr_api_configuration.extension';
+    public const string HEALTH_PROBE_TAG = 'dmstr_api_configuration.health_probe';
 
     protected string $extensionAlias = 'dmstr_api_configuration';
 
@@ -26,6 +28,10 @@ final class ApiConfigurationBundle extends AbstractBundle
         // ApiExtensionRegistry via tagged_iterator — no manual registration.
         $container->registerForAutoconfiguration(ApiExtensionInterface::class)
             ->addTag(self::EXTENSION_TAG);
+
+        // Same for health probes of types without a full API client
+        $container->registerForAutoconfiguration(HealthProbeInterface::class)
+            ->addTag(self::HEALTH_PROBE_TAG);
     }
 
     public function loadExtension(

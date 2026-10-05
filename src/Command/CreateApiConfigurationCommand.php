@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Dmstr\ApiConfiguration\Command;
 
 use Dmstr\ApiConfiguration\Entity\ApiConfiguration;
+use Dmstr\ApiConfiguration\Security\ConfigSecrets;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -24,7 +25,8 @@ class CreateApiConfigurationCommand extends Command
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-        private readonly ValidatorInterface $validator
+        private readonly ValidatorInterface $validator,
+        private readonly ConfigSecrets $secrets,
     ) {
         parent::__construct();
     }
@@ -103,7 +105,7 @@ HELP
 
             if ($output->isVerbose()) {
                 $io->section('Config JSON');
-                $io->writeln(json_encode($config->getConfigJson(), JSON_PRETTY_PRINT));
+                $io->writeln(json_encode($this->secrets->mask($config->getConfigJson()), JSON_PRETTY_PRINT));
             }
 
             return Command::SUCCESS;

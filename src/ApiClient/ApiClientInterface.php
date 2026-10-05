@@ -1,4 +1,5 @@
 <?php
+// file generated with AI assistance: Claude Code - 2026-10-05 12:10:00 UTC
 
 declare(strict_types=1);
 
@@ -7,6 +8,12 @@ namespace Dmstr\ApiConfiguration\ApiClient;
 /**
  * Base interface for all API clients (REST + File).
  *
+ * Only what every source supports belongs here. Optional capabilities are
+ * separate interfaces that callers check with `instanceof`, so "unsupported"
+ * is no longer indistinguishable from "empty":
+ * {@see CustomerAwareApiClientInterface}, {@see TodoListAwareApiClientInterface},
+ * {@see ChangeProbeInterface}, {@see UserAwareApiClientInterface}.
+ *
  * Domain methods (getProjects, getTodos, ...) belong here because the data
  * shape is the same regardless of acquisition mechanism — HTTP, XML file,
  * CSV dump, etc. are implementation details of the concrete client.
@@ -14,11 +21,12 @@ namespace Dmstr\ApiConfiguration\ApiClient;
 interface ApiClientInterface
 {
     /**
-     * Authenticate with the API
+     * Authenticate with the API.
      *
-     * @return bool True if authentication successful
+     * @throws AuthenticationFailedException if authentication fails; the
+     *         transport exception (401, DNS, TLS, ...) is passed as `previous`
      */
-    public function authenticate(): bool;
+    public function authenticate(): void;
 
     /**
      * Get the client type (rest or file)
@@ -59,24 +67,6 @@ interface ApiClientInterface
     public function getProjects(): array;
 
     /**
-     * Get all customers (groups/orgs/companies) from the source.
-     * "Customer" maps to: BC2 Groups, BC4 Companies, GitHub Orgs, GitLab Groups,
-     * Jira Project Categories (or empty for file-based sources without grouping).
-     *
-     * @return array Array of customer data (raw, not normalized)
-     */
-    public function getCustomers(): array;
-
-    /**
-     * Get todo lists for a specific project (Basecamp 2 specific concept).
-     * Other sources may return an empty array.
-     *
-     * @param string $projectId The project identifier
-     * @return array Array of todo list data
-     */
-    public function getTodoLists(string $projectId): array;
-
-    /**
      * Get todos/issues for a specific project.
      *
      * @param string $projectId The project identifier
@@ -92,22 +82,4 @@ interface ApiClientInterface
      * @return array|null Todo/issue data or null if not found
      */
     public function getTodo(string $projectId, string $todoId): ?array;
-
-    /**
-     * Check if the source has been modified since a given timestamp.
-     * Used for intelligent sync scheduling (skip when nothing changed).
-     *
-     * Contract:
-     *  - Must be *cheap*: one request at most. It is called to avoid a more
-     *    expensive call, so it must not page or fan out.
-     *  - Must **fail open**: on any error, or whenever the implementation cannot
-     *    tell, return `true`. A `false` suppresses the scan entirely, so a broken
-     *    or incomplete probe would silently stop data from being refreshed.
-     *  - Returning a constant `true` is a valid implementation for sources
-     *    without a reliable account-wide change feed.
-     *
-     * @param \DateTimeInterface $since Timestamp to check against
-     * @return bool True if source has (or may have) changes since the timestamp
-     */
-    public function hasChanges(\DateTimeInterface $since): bool;
 }
