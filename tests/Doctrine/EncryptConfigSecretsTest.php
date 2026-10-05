@@ -11,7 +11,6 @@ use Dmstr\ApiConfiguration\Entity\ApiConfiguration;
 use Dmstr\ApiConfiguration\Security\ConfigSecrets;
 use Dmstr\ApiConfiguration\Tests\Fixtures\SecretsFixture;
 use Doctrine\DBAL\DriverManager;
-use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Events;
@@ -80,8 +79,8 @@ final class EncryptConfigSecretsTest extends TestCase
     {
         // A row written in clear before encryption at rest existed
         $this->entityManager->getConnection()->insert('dmstr_api_configuration', [
-            // UuidType stores binary(16) on platforms without a native GUID type
-            'id' => Uuid::v4()->toBinary(),
+            // Converted and bound by the same Doctrine type the ORM uses
+            'id' => Uuid::v4(),
             'name' => 'legacy',
             'type' => 'demo',
             'endpoint_type' => 'rest',
@@ -89,7 +88,7 @@ final class EncryptConfigSecretsTest extends TestCase
             'active' => 1,
             'created_at' => '2026-01-01 00:00:00',
             'updated_at' => '2026-01-01 00:00:00',
-        ], ['id' => ParameterType::BINARY]);
+        ], ['id' => 'uuid']);
 
         $tester = new CommandTester(new EncryptApiConfigurationSecretsCommand($this->entityManager, $this->secrets));
 
