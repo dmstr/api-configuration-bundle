@@ -1,5 +1,5 @@
 <?php
-// file generated with AI assistance: Claude Code - 2025-11-01 00:00:00
+// file generated with AI assistance: Claude Code - 2026-10-05 13:00:00 UTC
 
 declare(strict_types=1);
 
@@ -42,6 +42,16 @@ class ApiConfigurationValidator extends ConstraintValidator
 
         // Get unified schema from SchemaRegistry
         $unifiedSchema = $this->schemaRegistry->getUnifiedSchema();
+
+        // Without any registered type the registry returns `anyOf: []`, which
+        // is invalid JSON Schema and makes opis throw (HTTP 500, Issue #5)
+        if (($unifiedSchema['anyOf'] ?? null) === []) {
+            $this->logger->warning('API configuration rejected: no configuration schema is registered');
+            $this->context->buildViolation($constraint->message)
+                ->setParameter('{{ error }}', 'No API configuration type is registered; install or enable an extension that provides a configuration schema')
+                ->addViolation();
+            return;
+        }
 
         // Secrets kept from the stored configuration are encrypted; validate
         // their clear values. Logs only ever see the masked configuration.

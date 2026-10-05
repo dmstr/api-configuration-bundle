@@ -30,6 +30,8 @@ Secure storage and transport of the credentials in `configJson` ([Issue #8](http
 ### Fixed
 
 - `GET /api/admin/api_configurations/{id}/health` in JSON-LD returned `metadata` and `error` as `hydra:Collection` without their keys (Issue #9); the operation now normalizes nested arrays raw (`api_sub_level`).
+- Write operations returned HTTP 500 (`anyOf must have at least one element`) when no configuration schema was registered ([Issue #5](https://github.com/dmstr/api-configuration-bundle/issues/5)); the validator now reports a violation (HTTP 422). The root cause, the empty `anyOf` from `SchemaRegistry`, is tracked in dmstr/openapi-json-schema-bundle#3.
+- `symfony/validator` is declared as a dependency; it was used directly but only installed transitively.
 - `app:api:validate-file` called the non-existent `ApiConfiguration::getFileConfig()` (a leftover from file configurations with a `format` key) and failed with a PHP error; it now builds the client and delegates to `FileApiClientInterface::validateFile()` and `parseFile()`, so every file type validates its own format.
 - `app:api:test-connection` called the non-existent `ApiConfiguration::getCredentials()` and failed with a PHP error; it now builds the client from the entity.
 
