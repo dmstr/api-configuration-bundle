@@ -30,6 +30,7 @@ Secure storage and transport of the credentials in `configJson` ([Issue #8](http
 ### Fixed
 
 - `GET /api/admin/api_configurations/{id}/health` in JSON-LD returned `metadata` and `error` as `hydra:Collection` without their keys (Issue #9); the operation now normalizes nested arrays raw (`api_sub_level`).
+- `app:api:validate-file` called the non-existent `ApiConfiguration::getFileConfig()` (a leftover from file configurations with a `format` key) and failed with a PHP error; it now builds the client and delegates to `FileApiClientInterface::validateFile()` and `parseFile()`, so every file type validates its own format.
 - `app:api:test-connection` called the non-existent `ApiConfiguration::getCredentials()` and failed with a PHP error; it now builds the client from the entity.
 
 ## 0.4.0 and earlier
