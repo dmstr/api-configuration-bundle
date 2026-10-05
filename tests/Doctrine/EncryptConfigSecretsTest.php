@@ -16,6 +16,7 @@ use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Events;
 use Doctrine\ORM\ORMSetup;
+use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;
 use Doctrine\ORM\Tools\SchemaTool;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\Doctrine\Types\UuidType;
@@ -38,6 +39,8 @@ final class EncryptConfigSecretsTest extends TestCase
         }
 
         $config = ORMSetup::createAttributeMetadataConfiguration([__DIR__ . '/../../src/Entity'], true);
+        // Column names as in a Symfony app (endpoint_type, created_at, ...)
+        $config->setNamingStrategy(new UnderscoreNamingStrategy(CASE_LOWER, true));
         if (method_exists($config, 'enableNativeLazyObjects')) {
             $config->enableNativeLazyObjects(true);
         }
