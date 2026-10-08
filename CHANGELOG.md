@@ -1,4 +1,4 @@
-<!-- file generated with AI assistance: Claude Code - 2026-10-05 10:25:39 UTC -->
+<!-- file generated with AI assistance: Claude Code - 2026-10-08 13:38:06 UTC -->
 
 # Changelog
 
@@ -26,6 +26,10 @@ Secure storage and transport of the credentials in `configJson` ([Issue #8](http
 - Console command `app:api-configuration:encrypt-secrets` (`--dry-run`) to encrypt the secrets of existing rows, idempotent.
 - `HealthProbeInterface` (Issue #9): a health check per type without the project-management client methods, autoconfigured. Schema-only types (no `ApiExtensionInterface`) answer the health route and command instead of "Unsupported API name"; a probe takes precedence over the client-based check.
 - `ApiConfigurationHealthChecker`: the health check shared by the health route, the health command and application dashboards.
+
+### Changed
+
+- `GET /api/admin/api_configurations` no longer offers `order[id]`. The identifier is a random UUID v4, so sorting by it has no meaning; admin UIs that derive sortable columns from the offered `order[...]` parameters no longer show a sort control for it. Requests that still send `order[id]` are not sorted by it.
 
 ### Fixed
 

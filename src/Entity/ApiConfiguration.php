@@ -1,5 +1,5 @@
 <?php
-// file generated with AI assistance: Claude Code - 2026-10-05 10:25:39 UTC
+// file generated with AI assistance: Claude Code - 2026-10-08 13:38:06 UTC
 
 declare(strict_types=1);
 
@@ -72,7 +72,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 ])]
 #[ApiFilter(BooleanFilter::class, properties: ['active'])]
 #[ApiFilter(DateFilter::class, properties: ['createdAt', 'updatedAt'])]
-#[ApiFilter(OrderFilter::class, properties: ['id', 'name', 'type', 'endpointType', 'active', 'createdAt', 'updatedAt'])]
+#[ApiFilter(OrderFilter::class, properties: ['name', 'type', 'endpointType', 'active', 'createdAt', 'updatedAt'])]
 class ApiConfiguration implements JsonSchemaProviderInterface
 {
     #[ORM\Id]
