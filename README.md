@@ -4,15 +4,15 @@
 
 Manage external API connections as Doctrine entities.
 
-## Features (planned)
+## Features
 
-- `ApiConfiguration` entity — type, credentials (encrypted at rest, masked on read), endpoint config
-- Custom operations: `health`, `authorize`, `test-connection`
-- `ApiExtensionRegistry` — discoverable adapter pattern via tag
-- `ApiExtensionInterface` / `AuthorizableExtensionInterface` — adapters
-  implement these to plug in
-- OAuth callback controller for `authorize` flow
-- CLI mirrors: `api-configuration:create`, `:health`, `:test-connection`
+- `ApiConfiguration` entity (`name`, `type`, `endpointType`, `configJson`, `active`) under `/api/admin/api_configurations`, `configJson` validated against the JSON schema of its type
+- Secrets in `configJson` encrypted at rest and masked on read, see [Security](#security)
+- Sub-resources `GET /api/admin/api_configurations/{id}/health` and `GET /api/admin/api_configurations/{id}/authorize`, OAuth callback at `/api/oauth/callback`
+- `ApiExtensionRegistry`: extensions implement `ApiExtensionInterface` (and `AuthorizableExtensionInterface` for OAuth) and are registered by tag
+- Console commands `app:api:create`, `app:api:test-connection`, `app:api:validate-file`, `app:api-configuration:health` and `app:api-configuration:encrypt-secrets`
+
+Changes per version are listed in [CHANGELOG.md](CHANGELOG.md).
 
 ## API clients
 

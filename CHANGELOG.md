@@ -1,10 +1,12 @@
-<!-- file generated with AI assistance: Claude Code - 2026-10-05 10:25:39 UTC -->
+<!-- file generated with AI assistance: Claude Code - 2026-10-08 13:38:06 UTC -->
 
 # Changelog
 
-## Unreleased
+All notable changes to this bundle. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/) and come from the Git tags.
 
-Secure storage and transport of the credentials in `configJson` ([Issue #8](https://github.com/dmstr/api-configuration-bundle/issues/8)) and a slimmer client contract ([Issue #9](https://github.com/dmstr/api-configuration-bundle/issues/9)). Release as a new minor version: the changes below break consumers in the ways listed under "Breaking changes".
+## [0.5.0] - 2026-10-10
+
+Secure storage and transport of the credentials in `configJson` ([Issue #8](https://github.com/dmstr/api-configuration-bundle/issues/8)) and a slimmer client contract ([Issue #9](https://github.com/dmstr/api-configuration-bundle/issues/9)). The changes break consumers in the ways listed under "Breaking changes". 0.5.0-beta1 contained everything below except the removal of `order[id]` ("Changed").
 
 ### Breaking changes
 
@@ -27,6 +29,10 @@ Secure storage and transport of the credentials in `configJson` ([Issue #8](http
 - `HealthProbeInterface` (Issue #9): a health check per type without the project-management client methods, autoconfigured. Schema-only types (no `ApiExtensionInterface`) answer the health route and command instead of "Unsupported API name"; a probe takes precedence over the client-based check.
 - `ApiConfigurationHealthChecker`: the health check shared by the health route, the health command and application dashboards.
 
+### Changed
+
+- `GET /api/admin/api_configurations` no longer offers `order[id]`. The identifier is a random UUID v4, so sorting by it has no meaning; admin UIs that derive sortable columns from the offered `order[...]` parameters no longer show a sort control for it. Requests that still send `order[id]` are not sorted by it.
+
 ### Fixed
 
 - `GET /api/admin/api_configurations/{id}/health` in JSON-LD returned `metadata` and `error` as `hydra:Collection` without their keys (Issue #9); the operation now normalizes nested arrays raw (`api_sub_level`).
@@ -37,4 +43,6 @@ Secure storage and transport of the credentials in `configJson` ([Issue #8](http
 
 ## 0.4.0 and earlier
 
-See git history.
+See the git history.
+
+[0.5.0]: https://github.com/dmstr/api-configuration-bundle/compare/0.4.0...0.5.0
