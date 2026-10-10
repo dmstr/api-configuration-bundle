@@ -2,9 +2,11 @@
 
 # Changelog
 
-## Unreleased
+All notable changes to this bundle. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/) and come from the Git tags.
 
-Secure storage and transport of the credentials in `configJson` ([Issue #8](https://github.com/dmstr/api-configuration-bundle/issues/8)) and a slimmer client contract ([Issue #9](https://github.com/dmstr/api-configuration-bundle/issues/9)). Release as a new minor version: the changes below break consumers in the ways listed under "Breaking changes".
+## [0.5.0] - 2026-10-10
+
+Secure storage and transport of the credentials in `configJson` ([Issue #8](https://github.com/dmstr/api-configuration-bundle/issues/8)) and a slimmer client contract ([Issue #9](https://github.com/dmstr/api-configuration-bundle/issues/9)). The changes break consumers in the ways listed under "Breaking changes". 0.5.0-beta1 contained everything below except the removal of `order[id]` ("Changed").
 
 ### Breaking changes
 
@@ -41,4 +43,6 @@ Secure storage and transport of the credentials in `configJson` ([Issue #8](http
 
 ## 0.4.0 and earlier
 
-See git history.
+See the git history.
+
+[0.5.0]: https://github.com/dmstr/api-configuration-bundle/compare/0.4.0...0.5.0
