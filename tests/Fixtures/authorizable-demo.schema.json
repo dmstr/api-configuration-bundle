@@ -1,0 +1,12 @@
+{
+    "type": "object",
+    "required": ["type", "endpoint_type", "base_url", "client_id"],
+    "properties": {
+        "type": { "const": "authorizable-demo" },
+        "endpoint_type": { "const": "rest" },
+        "base_url": { "type": "string", "format": "uri" },
+        "client_id": { "type": "string" },
+        "client_secret": { "type": "string", "writeOnly": true },
+        "access_token": { "type": "string", "writeOnly": true }
+    }
+}
