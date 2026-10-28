@@ -11,30 +11,35 @@ use Dmstr\ApiConfiguration\Tests\Kernel\TestKernel;
 use Dmstr\ApiConfiguration\Tests\Kernel\TestPermissionVoter;
 
 /**
- * Smoke test of the HTTP test infrastructure against the current
- * behaviour of the resource.
+ * Smoke test of the HTTP test infrastructure against the behaviour of the
+ * resource: a role mapped to every `apiconfig:*` permission by the test
+ * kernel's voter can use it, other roles and anonymous callers cannot.
+ * The full permission matrix is {@see OperationSecurityTest}.
  */
 final class CurrentBehaviourSmokeTest extends ApiTestCase
 {
     /**
-     * The role the resource's security expression requires today. Replaced
-     * by permission attributes in the next change, together with this test.
+     * A role {@see TestPermissionVoter::PERMISSIONS} maps to every
+     * permission the resource checks.
      */
-    private const string CURRENT_REQUIRED_ROLE = 'ROLE_ADMIN';
+    private const string FULL_PERMISSION_ROLE = 'admin';
 
-    public function testCollectionIsReadableWithTheRequiredRole(): void
+    /** A role the voter maps to no permission */
+    private const string UNMAPPED_ROLE = 'nobody';
+
+    public function testCollectionIsReadableWithAllPermissions(): void
     {
         $this->createApiConfiguration();
 
-        $response = $this->requestAs('GET', self::COLLECTION, [self::CURRENT_REQUIRED_ROLE]);
+        $response = $this->requestAs('GET', self::COLLECTION, [self::FULL_PERMISSION_ROLE]);
 
         self::assertSame(200, $response->getStatusCode(), (string) $response->getContent());
         self::assertSame(1, self::json($response)['totalItems']);
     }
 
-    public function testCollectionIsForbiddenForAnotherRole(): void
+    public function testCollectionIsForbiddenForAnUnmappedRole(): void
     {
-        $response = $this->requestAs('GET', self::COLLECTION, ['reader']);
+        $response = $this->requestAs('GET', self::COLLECTION, [self::UNMAPPED_ROLE]);
 
         self::assertSame(403, $response->getStatusCode());
     }
@@ -50,7 +55,7 @@ final class CurrentBehaviourSmokeTest extends ApiTestCase
     {
         $configuration = $this->createApiConfiguration();
 
-        $response = $this->requestAs('GET', $this->itemUri($configuration), [self::CURRENT_REQUIRED_ROLE]);
+        $response = $this->requestAs('GET', $this->itemUri($configuration), [self::FULL_PERMISSION_ROLE]);
 
         self::assertSame(200, $response->getStatusCode(), (string) $response->getContent());
         $config = self::json($response)['configJson'];
@@ -63,11 +68,11 @@ final class CurrentBehaviourSmokeTest extends ApiTestCase
         $configuration = $this->createAuthorizableApiConfiguration();
         $uri = $this->itemUri($configuration, '/authorize');
 
-        $browser = $this->requestAs('GET', $uri, [self::CURRENT_REQUIRED_ROLE], headers: ['Accept' => 'text/html']);
+        $browser = $this->requestAs('GET', $uri, [self::FULL_PERMISSION_ROLE], headers: ['Accept' => 'text/html']);
         self::assertSame(303, $browser->getStatusCode());
         self::assertStringStartsWith(AuthorizableDemoExtension::AUTHORIZE_ENDPOINT . '?', (string) $browser->headers->get('Location'));
 
-        $json = $this->requestAs('GET', $uri, [self::CURRENT_REQUIRED_ROLE]);
+        $json = $this->requestAs('GET', $uri, [self::FULL_PERMISSION_ROLE]);
         self::assertSame(200, $json->getStatusCode(), (string) $json->getContent());
         $body = self::json($json);
         self::assertStringStartsWith(AuthorizableDemoExtension::AUTHORIZE_ENDPOINT . '?', $body['authorizeUrl']);
@@ -79,7 +84,7 @@ final class CurrentBehaviourSmokeTest extends ApiTestCase
     {
         $configuration = $this->createApiConfiguration();
 
-        $response = $this->requestAs('GET', $this->itemUri($configuration, '/authorize'), [self::CURRENT_REQUIRED_ROLE]);
+        $response = $this->requestAs('GET', $this->itemUri($configuration, '/authorize'), [self::FULL_PERMISSION_ROLE]);
 
         self::assertSame(409, $response->getStatusCode());
     }
