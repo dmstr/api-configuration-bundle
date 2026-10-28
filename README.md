@@ -14,6 +14,10 @@ Manage external API connections as Doctrine entities.
 
 Changes per version are listed in [CHANGELOG.md](CHANGELOG.md).
 
+## Requirements
+
+PHP >= 8.5 and `symfony/security-bundle` with a firewall in front of `/api/admin`, see [Access](#access).
+
 ## API clients
 
 An extension implements `ApiExtensionInterface` (tagged automatically) and builds a client implementing `ApiClientInterface`, which holds only what every source supports. Optional capabilities are separate interfaces; implement those the source really supports, callers check `instanceof`:
@@ -37,7 +41,43 @@ An extension implements `ApiExtensionInterface` (tagged automatically) and build
 
 ### Access
 
-Every operation of the `ApiConfiguration` resource under `/api/admin/api_configurations` — reads and the `health` and `authorize` sub-resources included — requires `ROLE_ADMIN`, because `configJson` holds the credentials for the upstream systems.
+Every operation of the `ApiConfiguration` resource under `/api/admin/api_configurations` checks a permission attribute with `is_granted()`, because `configJson` holds the credentials for the upstream systems:
+
+| Permission | Operations |
+|---|---|
+| `apiconfig:read` | `GET` collection and item, `GET /api/admin/api_configurations/{id}/health` |
+| `apiconfig:write` | `POST`, `PUT`, `PATCH`, `DELETE` |
+| `apiconfig:authorize` | `GET /api/admin/api_configurations/{id}/authorize`, also the browser path (`Accept: text/html`, answered with a `303` redirect) |
+
+The constants are in `Dmstr\ApiConfiguration\Security\ApiConfigurationPermissions` (`READ`, `WRITE`, `AUTHORIZE`, `all()`). The bundle also registers the three attributes as `za7_core.permission` service tags (attribute `permission`), so applications that collect such tags can offer them for assignment; the bundle itself depends on nothing for this.
+
+The bundle grants none of the permissions itself. A permission voter in the application maps its roles or users to the permissions; without one, every operation answers `403`. Denied callers get `403` before any `404`, anonymous callers `401` from the firewall. Credentials stay masked for every caller, and the `hydra:operation` list of an item only shows the operations the caller is allowed.
+
+#### Migrating from 0.5
+
+0.5 checked a fixed role; 0.6 checks the permissions above, so an application without a voter for them loses all access after the upgrade. A minimal voter granting all three permissions to an administrator role, with `<your-admin-role>` replaced by the role your application uses:
+
+```php
+use Dmstr\ApiConfiguration\Security\ApiConfigurationPermissions;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Authorization\Voter\Vote;
+use Symfony\Component\Security\Core\Authorization\Voter\Voter;
+
+final class ApiConfigurationPermissionVoter extends Voter
+{
+    protected function supports(string $attribute, mixed $subject): bool
+    {
+        return in_array($attribute, ApiConfigurationPermissions::all(), true);
+    }
+
+    protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool
+    {
+        return in_array('<your-admin-role>', $token->getRoleNames(), true);
+    }
+}
+```
+
+With autoconfiguration the voter is registered by itself. If the application already has a permission voter driven by a role-to-permission map, add the three attributes to the entry of `<your-admin-role>` instead. Clients that open the authorize URL in a browser need `apiconfig:authorize` as well; before 0.6 any authenticated caller got the redirect.
 
 ### Secrets in `configJson`
 

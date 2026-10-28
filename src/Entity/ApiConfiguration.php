@@ -22,6 +22,7 @@ use ApiPlatform\OpenApi\Model\Operation;
 use Dmstr\OpenApiJsonSchema\Attribute\JsonSchema;
 use Dmstr\OpenApiJsonSchema\Interface\JsonSchemaProviderInterface;
 use Dmstr\OpenApiJsonSchema\OpenApi\JsonFieldSchemaDecorator;
+use Dmstr\ApiConfiguration\Security\ApiConfigurationPermissions;
 use Dmstr\ApiConfiguration\State\ApiConfigurationAuthorizeProvider;
 use Dmstr\ApiConfiguration\State\ApiConfigurationHealthProvider;
 use Dmstr\ApiConfiguration\Validator\ApiConfigurationConstraint;
@@ -37,15 +38,16 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 #[ApiResource(
     operations: [
-        new Get(),
-        new GetCollection(),
-        new Post(security: "is_granted('ROLE_ADMIN')"),
-        new Put(security: "is_granted('ROLE_ADMIN')"),
-        new Patch(security: "is_granted('ROLE_ADMIN')"),
-        new Delete(security: "is_granted('ROLE_ADMIN')"),
+        new Get(security: self::SECURITY_READ),
+        new GetCollection(security: self::SECURITY_READ),
+        new Post(security: self::SECURITY_WRITE),
+        new Put(security: self::SECURITY_WRITE),
+        new Patch(security: self::SECURITY_WRITE),
+        new Delete(security: self::SECURITY_WRITE),
         new Get(
             uriTemplate: '/api_configurations/{id}/health',
             name: 'api_configuration_health',
+            security: self::SECURITY_READ,
             provider: ApiConfigurationHealthProvider::class,
             // Nested arrays (metadata, error) stay plain objects in JSON-LD
             // instead of becoming hydra:Collection (Issue #9)
@@ -54,13 +56,17 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Get(
             uriTemplate: '/api_configurations/{id}/authorize',
             name: 'api_configuration_authorize',
-            security: "is_granted('ROLE_ADMIN')",
+            security: self::SECURITY_AUTHORIZE,
             provider: ApiConfigurationAuthorizeProvider::class,
         ),
     ],
     routePrefix: '/admin',
-    // Reads included: configJson holds upstream credentials (Issue #8)
-    security: "is_granted('ROLE_ADMIN')",
+    // Every operation names its permission explicitly; this is only the
+    // fallback for an operation added without one. Reads are included:
+    // configJson holds upstream credentials (Issue #8). The attributes are
+    // decided by the application's permission voter, without one every
+    // operation is denied (see ApiConfigurationPermissions).
+    security: self::SECURITY_READ,
     paginationEnabled: true,
     paginationItemsPerPage: 30,
     openapi: new Operation(tags: ['System'])
@@ -75,6 +81,13 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiFilter(OrderFilter::class, properties: ['name', 'type', 'endpointType', 'active', 'createdAt', 'updatedAt'])]
 class ApiConfiguration implements JsonSchemaProviderInterface
 {
+    // Security expressions of the operations above. They only check the
+    // permission attribute, without `object`, so API Platform evaluates them
+    // before reading the item: a denied caller gets 403, never 404.
+    private const string SECURITY_READ = "is_granted('" . ApiConfigurationPermissions::READ . "')";
+    private const string SECURITY_WRITE = "is_granted('" . ApiConfigurationPermissions::WRITE . "')";
+    private const string SECURITY_AUTHORIZE = "is_granted('" . ApiConfigurationPermissions::AUTHORIZE . "')";
+
     #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true)]
     #[ApiProperty(identifier: true, readable: true, writable: false, description: 'Unique identifier')]

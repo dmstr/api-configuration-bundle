@@ -16,6 +16,16 @@ services:
             - '../src/Entity/'
             - '../src/Extension/'
 
+    # Permission attributes of the resource's operations. An application
+    # (e.g. za7-core) collects the `za7_core.permission` tags to offer them
+    # for assignment; the bundle itself depends on nothing for it. Replaces
+    # the definition discovered above (a constants class, never instantiated).
+    Dmstr\ApiConfiguration\Security\ApiConfigurationPermissions:
+        tags:
+            - { name: 'za7_core.permission', permission: 'apiconfig:read' }
+            - { name: 'za7_core.permission', permission: 'apiconfig:write' }
+            - { name: 'za7_core.permission', permission: 'apiconfig:authorize' }
+
     # Explicit health-check state provider tag for API Platform
     Dmstr\ApiConfiguration\State\ApiConfigurationHealthProvider:
         tags:
