@@ -25,4 +25,4 @@ via `.github/workflows/tests.yml`.
 
 ## Requirements
 
-PHP >= 8.4.
+PHP >= 8.5.

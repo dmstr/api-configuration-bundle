@@ -10,7 +10,7 @@
         }
     ],
     "require": {
-        "php": ">=8.4",
+        "php": ">=8.5",
         "symfony/framework-bundle": "^7.0",
         "api-platform/symfony": "^4.0",
         "doctrine/orm": "^3.0",
