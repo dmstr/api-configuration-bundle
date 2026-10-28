@@ -7,6 +7,7 @@ namespace Dmstr\ApiConfiguration\EventListener;
 
 use Dmstr\ApiConfiguration\Entity\ApiConfiguration;
 use Dmstr\ApiConfiguration\Extension\AuthorizableExtensionInterface;
+use Dmstr\ApiConfiguration\Security\ApiConfigurationPermissions;
 use Dmstr\ApiConfiguration\Service\ApiExtensionRegistry;
 use Dmstr\ApiPlatformUtils\Service\UuidResolver;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -15,6 +16,8 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 /**
  * Short-circuits the normal API-Platform pipeline for
@@ -25,8 +28,14 @@ use Symfony\Component\HttpKernel\KernelEvents;
  * JSON-LD (Hydra) and XHR callers keep the regular pipeline → JSON body
  * with `authorizeUrl`/`state` from {@see ApiConfigurationAuthorizeProvider}.
  *
- * Runs after Symfony Security (priority < 8) so the bearer-token check has
- * already happened; the listener trusts that the request is authorized.
+ * Runs after the Symfony firewall (priority < 8), so the token is
+ * available, but before API Platform's own security check: the listener
+ * therefore checks the operation's permission
+ * ({@see ApiConfigurationPermissions::AUTHORIZE}) itself. It does so before
+ * looking up the configuration, so a denied caller always gets the same
+ * answer and cannot probe ids by a 404 or 409. A denial throws Symfony's
+ * {@see AccessDeniedException}, which the firewall turns into 403 for an
+ * authenticated caller and into its entry point (401) for an anonymous one.
  */
 #[AsEventListener(event: KernelEvents::REQUEST, priority: 4)]
 final class AuthorizeRedirectListener
@@ -36,6 +45,7 @@ final class AuthorizeRedirectListener
     public function __construct(
         private readonly UuidResolver $uuidResolver,
         private readonly ApiExtensionRegistry $extensionRegistry,
+        private readonly AuthorizationCheckerInterface $authorizationChecker,
         #[Autowire(param: 'app.oauth.redirect_uri')]
         private readonly string $defaultRedirectUri,
     ) {
@@ -55,6 +65,9 @@ final class AuthorizeRedirectListener
         }
         if (!$this->wantsHtml($request)) {
             return;
+        }
+        if (!$this->authorizationChecker->isGranted(ApiConfigurationPermissions::AUTHORIZE)) {
+            throw new AccessDeniedException();
         }
 
         $config = $this->uuidResolver->findByPartialUuid(ApiConfiguration::class, $matches[1]);
