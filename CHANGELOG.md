@@ -4,7 +4,7 @@
 
 All notable changes to this bundle. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/) and come from the Git tags.
 
-## [0.6.0] - Unreleased
+## [0.6.0] - 2026-10-28
 
 Access to `ApiConfiguration` is decided by permission attributes instead of a fixed role, so applications choose who may read, write and authorize configurations. The changes break consumers in the ways listed under "Breaking changes"; the migration is described in the README under [Migrating from 0.5](README.md#migrating-from-05).
 
@@ -61,5 +61,5 @@ Secure storage and transport of the credentials in `configJson` ([Issue #8](http
 
 See the git history.
 
-[0.6.0]: https://github.com/dmstr/api-configuration-bundle/compare/0.5.0...HEAD
+[0.6.0]: https://github.com/dmstr/api-configuration-bundle/compare/0.5.0...0.6.0
 [0.5.0]: https://github.com/dmstr/api-configuration-bundle/compare/0.4.0...0.5.0
