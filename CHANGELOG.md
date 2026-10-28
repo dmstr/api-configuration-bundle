@@ -4,6 +4,22 @@
 
 All notable changes to this bundle. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/) and come from the Git tags.
 
+## [0.6.0] - Unreleased
+
+Access to `ApiConfiguration` is decided by permission attributes instead of a fixed role, so applications choose who may read, write and authorize configurations. The changes break consumers in the ways listed under "Breaking changes"; the migration is described in the README under [Migrating from 0.5](README.md#migrating-from-05).
+
+### Breaking changes
+
+- **Permission attributes replace the role check.** `Get`, `GetCollection` and `health` check `apiconfig:read`; `Post`, `Put`, `Patch` and `Delete` check `apiconfig:write`; `authorize` checks `apiconfig:authorize` (before: `ROLE_ADMIN` for every operation). The constants are in `Dmstr\ApiConfiguration\Security\ApiConfigurationPermissions` and are tagged `za7_core.permission` for applications that collect them.
+- **Without a permission voter every operation answers `403`.** The bundle grants nothing itself; the application needs a voter that grants the three attributes. Denied callers get `403` before any `404`.
+- **The browser path of `authorize` is hardened.** `GET /api/admin/api_configurations/{id}/authorize` with `Accept: text/html` checks `apiconfig:authorize` before looking up the configuration and answers `403` when denied, `401` for anonymous callers; before, any authenticated caller got the `303` redirect.
+- **`symfony/security-bundle` and `symfony/expression-language` are required** (`require` instead of `require-dev`); the application needs a firewall in front of `/api/admin`.
+- **PHP >= 8.5** is required.
+
+### Added
+
+- Tests: an HTTP test kernel under `tests/` (header authentication via `X-Test-Roles`, `X-Test-User` and `X-Test-Auth: anonymous`, a test permission voter, SQLite in memory) that runs the operations through the full request pipeline, including a kernel without a voter.
+
 ## [0.5.0] - 2026-10-10
 
 Secure storage and transport of the credentials in `configJson` ([Issue #8](https://github.com/dmstr/api-configuration-bundle/issues/8)) and a slimmer client contract ([Issue #9](https://github.com/dmstr/api-configuration-bundle/issues/9)). The changes break consumers in the ways listed under "Breaking changes". 0.5.0-beta1 contained everything below except the removal of `order[id]` ("Changed").
@@ -45,4 +61,5 @@ Secure storage and transport of the credentials in `configJson` ([Issue #8](http
 
 See the git history.
 
+[0.6.0]: https://github.com/dmstr/api-configuration-bundle/compare/0.5.0...HEAD
 [0.5.0]: https://github.com/dmstr/api-configuration-bundle/compare/0.4.0...0.5.0
