@@ -8,6 +8,7 @@ namespace Dmstr\ApiConfiguration\Tests\Migrations;
 use Dmstr\ApiConfiguration\Migrations\Version20260516000001;
 use Dmstr\ApiConfiguration\Migrations\Version20260608210000;
 use Dmstr\ApiConfiguration\Migrations\Version20260713120000;
+use Dmstr\ApiConfiguration\Migrations\Version20261111100000;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Schema\Schema;
@@ -71,14 +72,25 @@ final class MigrationsPortabilityTest extends TestCase
             $this->connection->executeStatement($query->getStatement());
         }
 
+        // Version20261111100000 — add the unique source_key (portable SQL).
+        $sourceKey = new Version20261111100000($this->connection, $logger);
+        $sourceKey->up($schema);
+        foreach ($sourceKey->getSql() as $query) {
+            $this->connection->executeStatement($query->getStatement());
+        }
+
         $sm = $this->connection->createSchemaManager();
         self::assertTrue($sm->tablesExist(['dmstr_api_configuration']), 'renamed table exists');
         self::assertFalse($sm->tablesExist(['za7_api_configuration']), 'old table name is gone');
         self::assertFalse($sm->tablesExist(['api_configuration']), 'original table name is gone');
 
         $columns = array_keys($sm->listTableColumns('dmstr_api_configuration'));
-        foreach (['id', 'name', 'type', 'endpoint_type', 'config_json', 'active', 'created_at', 'updated_at'] as $column) {
+        foreach (['id', 'name', 'type', 'endpoint_type', 'config_json', 'active', 'created_at', 'updated_at', 'source_key'] as $column) {
             self::assertContains($column, $columns, sprintf('column %s exists', $column));
         }
+
+        $indexes = $sm->listTableIndexes('dmstr_api_configuration');
+        self::assertArrayHasKey('uniq_dmstr_api_configuration_source_key', $indexes);
+        self::assertTrue($indexes['uniq_dmstr_api_configuration_source_key']->isUnique());
     }
 }
