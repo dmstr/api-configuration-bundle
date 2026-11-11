@@ -28,6 +28,7 @@ use Dmstr\ApiConfiguration\State\ApiConfigurationHealthProvider;
 use Dmstr\ApiConfiguration\Validator\ApiConfigurationConstraint;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
@@ -35,6 +36,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'dmstr_api_configuration')]
+#[ORM\UniqueConstraint(name: 'uniq_dmstr_api_configuration_source_key', columns: ['source_key'])]
+#[UniqueEntity(fields: ['sourceKey'], message: 'This source key is already used by another API configuration.')]
 #[ORM\HasLifecycleCallbacks]
 #[ApiResource(
     operations: [
@@ -88,6 +91,8 @@ class ApiConfiguration implements JsonSchemaProviderInterface
     private const string SECURITY_WRITE = "is_granted('" . ApiConfigurationPermissions::WRITE . "')";
     private const string SECURITY_AUTHORIZE = "is_granted('" . ApiConfigurationPermissions::AUTHORIZE . "')";
 
+    public const string SOURCE_KEY_PATTERN = '/^[a-z0-9][a-z0-9.-]{1,40}$/';
+
     #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true)]
     #[ApiProperty(identifier: true, readable: true, writable: false, description: 'Unique identifier')]
@@ -99,6 +104,17 @@ class ApiConfiguration implements JsonSchemaProviderInterface
     #[ApiProperty(description: 'Configuration name')]
     #[Groups(['api_configuration:ref'])]
     private string $name;
+
+    /**
+     * Stable, operator-defined key of the upstream source. Applications derive
+     * deterministic identifiers of imported records from it (e.g. a UUID v5 of
+     * `<sourceKey>:<external id>`), so the same source yields the same ids on
+     * every installation that uses the same key. Optional and unique.
+     */
+    #[ORM\Column(name: 'source_key', type: Types::STRING, length: 64, nullable: true)]
+    #[Assert\Regex(pattern: self::SOURCE_KEY_PATTERN, message: 'The source key must start with a lowercase letter or digit and contain only lowercase letters, digits, "." and "-" (2-41 characters).')]
+    #[ApiProperty(description: 'Optional stable key of the upstream source, unique across configurations (pattern ^[a-z0-9][a-z0-9.-]{1,40}$). Applications derive deterministic ids of imported records from it; changing it later may require re-keying those records.')]
+    private ?string $sourceKey = null;
 
     #[ORM\Column(type: Types::STRING, length: 50)]
     #[Assert\NotBlank]
@@ -177,6 +193,19 @@ class ApiConfiguration implements JsonSchemaProviderInterface
     public function setName(string $name): self
     {
         $this->name = $name;
+        return $this;
+    }
+
+    public function getSourceKey(): ?string
+    {
+        return $this->sourceKey;
+    }
+
+    public function setSourceKey(?string $sourceKey): self
+    {
+        // An empty string from a form means "no key"; the unique index allows
+        // any number of NULLs but only one ''
+        $this->sourceKey = $sourceKey === '' ? null : $sourceKey;
         return $this;
     }
 

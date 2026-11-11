@@ -6,7 +6,7 @@ Manage external API connections as Doctrine entities.
 
 ## Features
 
-- `ApiConfiguration` entity (`name`, `type`, `endpointType`, `configJson`, `active`) under `/api/admin/api_configurations`, `configJson` validated against the JSON schema of its type
+- `ApiConfiguration` entity (`name`, `type`, `endpointType`, `configJson`, `active`, `sourceKey`) under `/api/admin/api_configurations`, `configJson` validated against the JSON schema of its type
 - Secrets in `configJson` encrypted at rest and masked on read, see [Security](#security)
 - Sub-resources `GET /api/admin/api_configurations/{id}/health` and `GET /api/admin/api_configurations/{id}/authorize`, OAuth callback at `/api/oauth/callback`
 - `ApiExtensionRegistry`: extensions implement `ApiExtensionInterface` (and `AuthorizableExtensionInterface` for OAuth) and are registered by tag
@@ -36,6 +36,10 @@ An extension implements `ApiExtensionInterface` (tagged automatically) and build
 ### Health checks
 
 `ApiConfigurationHealthChecker` serves the health route, `app:api-configuration:health` and application dashboards. For a type with a `HealthProbeInterface` (tagged automatically) it calls the probe with the decrypted configuration; otherwise it builds the client and calls `getHealthInfo()`. Types without a full client, such as schema-only connection types, only need a probe.
+
+### Source key
+
+`sourceKey` is an optional, operator-defined key of the upstream source, unique across configurations and matching `^[a-z0-9][a-z0-9.-]{1,40}$` (e.g. `gitlab-example`, `bc4-1234567`). The bundle only stores and validates it. Applications that import records from a source can derive deterministic identifiers from it, for example a UUID v5 of `<sourceKey>:<record type>:<external id>`: two installations that give the same source the same key then assign the same ids, and a record deleted and imported again keeps its id. Any number of configurations may leave it empty. Whether a key may change once records depend on it is up to the application.
 
 ## Security
 
