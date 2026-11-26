@@ -52,6 +52,11 @@ use Symfony\Component\Validator\Constraints as Assert;
             name: 'api_configuration_health',
             security: self::SECURITY_READ,
             provider: ApiConfigurationHealthProvider::class,
+            // Marks the operation as a custom action for
+            // dmstr/api-platform-utils-bundle >= 0.8 (schema:Action in
+            // /api/docs.jsonld). String literal instead of CustomAction::MARKER:
+            // that class only exists from utils 0.8 on, older versions ignore the key.
+            extraProperties: ['custom_action' => true],
             // Nested arrays (metadata, error) stay plain objects in JSON-LD
             // instead of becoming hydra:Collection (Issue #9)
             normalizationContext: ['api_sub_level' => true],
@@ -61,6 +66,8 @@ use Symfony\Component\Validator\Constraints as Assert;
             name: 'api_configuration_authorize',
             security: self::SECURITY_AUTHORIZE,
             provider: ApiConfigurationAuthorizeProvider::class,
+            // Custom action marker, see the health operation above
+            extraProperties: ['custom_action' => true],
         ),
     ],
     routePrefix: '/admin',

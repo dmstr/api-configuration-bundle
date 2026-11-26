@@ -8,7 +8,7 @@ Manage external API connections as Doctrine entities.
 
 - `ApiConfiguration` entity (`name`, `type`, `endpointType`, `configJson`, `active`, `sourceKey`) under `/api/admin/api_configurations`, `configJson` validated against the JSON schema of its type
 - Secrets in `configJson` encrypted at rest and masked on read, see [Security](#security)
-- Sub-resources `GET /api/admin/api_configurations/{id}/health` and `GET /api/admin/api_configurations/{id}/authorize`, OAuth callback at `/api/oauth/callback`
+- Sub-resources `GET /api/admin/api_configurations/{id}/health` and `GET /api/admin/api_configurations/{id}/authorize`, OAuth callback at `/api/oauth/callback`. Both sub-resources are marked as custom actions (`extraProperties: ['custom_action' => true]`), so `dmstr/api-platform-utils-bundle` 0.8 and later announces them as `schema:Action` in `/api/docs.jsonld` and admin UIs list them in their actions menu.
 - `ApiExtensionRegistry`: extensions implement `ApiExtensionInterface` (and `AuthorizableExtensionInterface` for OAuth) and are registered by tag
 - Console commands `app:api:create`, `app:api:test-connection`, `app:api:validate-file`, `app:api-configuration:health` and `app:api-configuration:encrypt-secrets`
 

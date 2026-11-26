@@ -4,6 +4,15 @@
 
 All notable changes to this bundle. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/) and come from the Git tags.
 
+## [0.9.0] - 2026-11-26
+
+The `health` and `authorize` sub-resources are marked as custom actions for `dmstr/api-platform-utils-bundle` 0.8.0, which classifies custom actions by an explicit marker only ([utils CHANGELOG 0.8.0](https://github.com/dmstr/api-platform-utils-bundle/blob/0.8.0/CHANGELOG.md#080-2026-11-26)). This is a minor release because the Hydra output in `/api/docs.jsonld` changes under utils 0.8.
+
+### Changed
+
+- `GET /api/admin/api_configurations/{id}/health` and `GET /api/admin/api_configurations/{id}/authorize` carry `extraProperties: ['custom_action' => true]`. Behaviour, security and output of both operations are unchanged.
+- Effect per utils version: 0.6 and 0.7 ignore the key, nothing changes. From 0.8 on, both operations stay announced as `schema:Action` in `/api/docs.jsonld` and admin UIs keep listing them in their actions menu; without the marker they would lose both.
+
 ## [0.8.0] - 2026-11-26
 
 Support for `dmstr/openapi-json-schema-bundle` 0.6.0, whose `SchemaRegistry::getUnifiedSchema()` returns the boolean schema `false` when no provider is registered, instead of an object with an empty `anyOf` ([Issue #16](https://github.com/dmstr/api-configuration-bundle/issues/16)).
@@ -87,5 +96,6 @@ Secure storage and transport of the credentials in `configJson` ([Issue #8](http
 
 See the git history.
 
+[0.9.0]: https://github.com/dmstr/api-configuration-bundle/compare/0.8.0...0.9.0
 [0.6.0]: https://github.com/dmstr/api-configuration-bundle/compare/0.5.0...0.6.0
 [0.5.0]: https://github.com/dmstr/api-configuration-bundle/compare/0.4.0...0.5.0
