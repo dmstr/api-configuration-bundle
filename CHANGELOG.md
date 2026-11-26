@@ -4,6 +4,26 @@
 
 All notable changes to this bundle. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/) and come from the Git tags.
 
+## [0.8.0] - 2026-11-26
+
+Support for `dmstr/openapi-json-schema-bundle` 0.6.0, whose `SchemaRegistry::getUnifiedSchema()` returns the boolean schema `false` when no provider is registered, instead of an object with an empty `anyOf` ([Issue #16](https://github.com/dmstr/api-configuration-bundle/issues/16)).
+
+### Changed
+
+- **`dmstr/openapi-json-schema-bundle ^0.6.0` is required** (before: `*`). Consumers that pin `^0.5` stay on 0.7.0.
+- **`ApiConfigurationSchemaProvider::getUnifiedSchema()` returns `array|bool`** (before: `array`); it returns `false` when no configuration type is registered. Callers that type the result as `array` have to handle `false`.
+- Without a registered configuration type, the OpenAPI document describes `configJson` as `{"description": "…No API configuration type is registered…", "anyOf": [{"not": {"description": "…"}}]}`, a schema that matches no value, instead of an open `type: object`. The output with registered types is unchanged.
+
+### Fixed
+
+- `ApiConfigurationSchemaProvider::getUnifiedSchema()` threw a `TypeError` without a registered configuration type (Issue #16).
+- `ApiConfiguration::getJsonSchema('config')` read `anyOf` from the boolean `false` without a registered configuration type, which emitted a PHP warning ("Trying to access array offset on value of type bool", an exception where warnings are turned into exceptions) and left `anyOf` as `null`, so the OpenAPI document showed an open `type: object` for `configJson` (Issue #16).
+- `ApiConfigurationValidator` again reports "No API configuration type is registered; install or enable an extension that provides a configuration schema" without a registered configuration type; with 0.6.0 it had fallen back to the generic "Configuration validation failed" message, because it only recognised the empty `anyOf` (Issue #16). The warning is still logged.
+
+### Upgrade
+
+- Run `bin/console cache:pool:clear cache.app` after the upgrade. A warm `cache.app` still serves the old unified schema `{"anyOf": []}` under `dmstr_openapi_json_schema_unified` until `cache_ttl` (default 3600 s) expires. Until then, writes without a registered configuration type are still rejected, but opis throws `Opis\JsonSchema\Exceptions\InvalidKeywordException` ("anyOf must have at least one element", HTTP 500) instead of the clear violation.
+
 ## [0.7.0] - 2026-11-11
 
 ### Added

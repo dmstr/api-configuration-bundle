@@ -18,6 +18,8 @@ Changes per version are listed in [CHANGELOG.md](CHANGELOG.md).
 
 PHP >= 8.5 and `symfony/security-bundle` with a firewall in front of `/api/admin`, see [Access](#access).
 
+`dmstr/openapi-json-schema-bundle` >= 0.6.0 is required: from that version on, `SchemaRegistry::getUnifiedSchema()` returns the boolean schema `false` when no configuration type is registered, which this bundle expects.
+
 ## API clients
 
 An extension implements `ApiExtensionInterface` (tagged automatically) and builds a client implementing `ApiClientInterface`, which holds only what every source supports. Optional capabilities are separate interfaces; implement those the source really supports, callers check `instanceof`:

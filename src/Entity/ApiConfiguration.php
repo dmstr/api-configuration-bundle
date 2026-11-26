@@ -270,7 +270,8 @@ class ApiConfiguration implements JsonSchemaProviderInterface
 
     /**
      * Provide JSON schema for fields
-     * For 'config' field, returns the unified anyOf schema from SchemaRegistry
+     * For 'config' field, returns the unified anyOf schema from SchemaRegistry,
+     * or a schema that rejects every value when no type is registered
      */
     public static function getJsonSchema(string $fieldName): ?array
     {
@@ -285,6 +286,20 @@ class ApiConfiguration implements JsonSchemaProviderInterface
             }
 
             $unifiedSchema = $schemaRegistry->getUnifiedSchema();
+
+            if ($unifiedSchema === false) {
+                // No configuration type is registered: the registry returns the
+                // boolean schema false. The decorator keeps only anyOf-only
+                // schemas unchanged, so the rejection is wrapped in anyOf;
+                // `not` of an annotation-only schema matches nothing
+                return [
+                    'description' => 'API configuration object. No API configuration type is registered, so no value is accepted.',
+                    'anyOf' => [
+                        ['not' => ['description' => 'Matches nothing: no configuration type is registered']],
+                    ],
+                ];
+            }
+
             // Return only description and anyOf for clean schema generation
             // DO NOT include 'type', 'properties', 'required', or 'additionalProperties'
             return [
