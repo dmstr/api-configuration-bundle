@@ -30,9 +30,11 @@ use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
  *   the test case creates the schema ({@see \Dmstr\ApiConfiguration\Tests\Http\ApiTestCase}).
  * - A stateless firewall over {@see self::API_PREFIX}, authenticated from
  *   request headers by {@see TestHeaderAuthenticator}.
- * - Two variants, selected by the kernel environment:
+ * - Three variants, selected by the kernel environment:
  *   {@see self::ENV_WITH_VOTER} registers {@see TestPermissionVoter},
- *   {@see self::ENV_NO_VOTER} registers no custom voter at all.
+ *   {@see self::ENV_NO_VOTER} registers no custom voter at all,
+ *   {@see self::ENV_NO_PROVIDER} registers the voter but no configuration
+ *   schema provider.
  *
  * Cache and logs live under the system temp directory, one directory per
  * variant, so a test run leaves no files in the repository.
@@ -43,6 +45,7 @@ final class TestKernel extends Kernel
 
     public const string ENV_WITH_VOTER = 'test';
     public const string ENV_NO_VOTER = 'test_no_voter';
+    public const string ENV_NO_PROVIDER = 'test_no_provider';
 
     /** API Platform routes are imported below this prefix, as in an application */
     public const string API_PREFIX = '/api';
@@ -91,6 +94,11 @@ final class TestKernel extends Kernel
     public function hasPermissionVoter(): bool
     {
         return $this->environment !== self::ENV_NO_VOTER;
+    }
+
+    public function hasSchemaProviders(): bool
+    {
+        return $this->environment !== self::ENV_NO_PROVIDER;
     }
 
     private function tmpDir(): string
@@ -189,10 +197,13 @@ final class TestKernel extends Kernel
         // autoconfiguration. Schema providers need the tag explicitly: the
         // openapi bundle autotags them only inside its own services file.
         $services->set(DemoExtension::class);
-        $services->set(DemoSchemaProvider::class)
-            ->tag('dmstr_openapi_json_schema.provider');
-        $services->set(AuthorizableDemoExtension::class)
-            ->tag('dmstr_openapi_json_schema.provider');
+
+        if ($this->hasSchemaProviders()) {
+            $services->set(DemoSchemaProvider::class)
+                ->tag('dmstr_openapi_json_schema.provider');
+            $services->set(AuthorizableDemoExtension::class)
+                ->tag('dmstr_openapi_json_schema.provider');
+        }
     }
 
     private function configureRoutes(RoutingConfigurator $routes): void

@@ -27,7 +27,13 @@ class ApiConfigurationSchemaProvider implements ProviderInterface
         return null;
     }
 
-    public function getUnifiedSchema(): array
+    /**
+     * The unified anyOf schema of all registered configuration types
+     *
+     * @return array<string,mixed>|false the boolean schema false when no
+     *                                   configuration type is registered
+     */
+    public function getUnifiedSchema(): array|bool
     {
         return $this->schemaRegistry->getUnifiedSchema();
     }

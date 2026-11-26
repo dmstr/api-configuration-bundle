@@ -43,9 +43,10 @@ class ApiConfigurationValidator extends ConstraintValidator
         // Get unified schema from SchemaRegistry
         $unifiedSchema = $this->schemaRegistry->getUnifiedSchema();
 
-        // Without any registered type the registry returns `anyOf: []`, which
-        // is invalid JSON Schema and makes opis throw (HTTP 500, Issue #5)
-        if (($unifiedSchema['anyOf'] ?? null) === []) {
+        // Without any registered type the registry returns the boolean schema
+        // false; report that clearly instead of opis' generic rejection
+        // (Issue #5, Issue #16)
+        if ($unifiedSchema === false) {
             $this->logger->warning('API configuration rejected: no configuration schema is registered');
             $this->context->buildViolation($constraint->message)
                 ->setParameter('{{ error }}', 'No API configuration type is registered; install or enable an extension that provides a configuration schema')
